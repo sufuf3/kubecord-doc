@@ -17,7 +17,7 @@ $kubecord_env = <<SHELL
 set -e -x -u
 echo "=== Setup Environment ==="
 sudo apt-get update
-sudo apt-get install -y git build-essential nfs-common ntp jq httpie vim cmake tcpdump unzip tig
+sudo apt-get install -y git build-essential nfs-common ntp jq httpie vim cmake tcpdump unzip tig socat
 
 # YouCompleteMe requirement
 sudo apt-get -qq install -y python-dev python3-dev python python-pip htop
@@ -108,9 +108,8 @@ cd ~/helm-charts/ && helm init
 cd ~/helm-charts/ && kubectl create serviceaccount --namespace kube-system tiller
 cd ~/helm-charts/ && kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 cd ~/helm-charts/ && kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+helm init --service-account tiller --upgrade
 cd ~/helm-charts/ && helm repo update
-cd ~/helm-charts/ && helm install -n onos-fabric -f configs/onos-fabric.yaml onos
-cd ~/helm-charts/ && helm list
 SHELL
 
   # In order to simulate multiple interfaces

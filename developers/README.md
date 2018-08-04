@@ -14,6 +14,17 @@
 - [ ] 建立 network-controller server
 - [ ] 建立 network-controller client with 多個 network interface
 
+## Setup
+1. 在 VM 中安裝 OVS 和 Kubernetes
+```sh
+vagrant up
+```
+2. 進到 VM 中安裝 ONOS
+```sh
+$ vagrant ssh
+# cd ~/helm-charts/ && helm install -n onos-fabric -f configs/onos-fabric.yaml onos
+```
+
 ## 參考資源
 - https://www.sdntesting.com/installing-and-using-distributed-onos/
 
