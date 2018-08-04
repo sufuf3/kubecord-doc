@@ -21,8 +21,8 @@ vagrant up
 ```
 2. 進到 VM 中安裝 ONOS
 ```sh
-$ vagrant ssh
-# cd ~/helm-charts/ && helm install -n onos-fabric -f configs/onos-fabric.yaml onos
+$ vagrant ssd
+vagrant@kubecord-dev:~$ cd ~/helm-charts/ && helm install -n onos-fabric -f configs/onos-fabric.yaml onos
 ```
 
 ## 參考資源
