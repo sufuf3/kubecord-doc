@@ -108,8 +108,9 @@ cd ~/helm-charts/ && helm init
 cd ~/helm-charts/ && kubectl create serviceaccount --namespace kube-system tiller
 cd ~/helm-charts/ && kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 cd ~/helm-charts/ && kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
-helm init --service-account tiller --upgrade
-cd ~/helm-charts/ && helm repo update
+#helm init --service-account tiller --upgrade
+#cd ~/helm-charts/ && helm repo update
+#cd ~/network-controller && kubectl create -f deploy/server/
 SHELL
 
   # In order to simulate multiple interfaces
@@ -142,6 +143,6 @@ SHELL
       v.customize ["modifyvm", :id, "--cpus", 2]
       v.customize ["modifyvm", :id, "--memory", 5120]
       v.customize ['modifyvm', :id, '--nicpromisc1', 'allow-all']
-      #v.gui = true
+      v.gui = true
   end
 end
