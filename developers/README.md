@@ -12,34 +12,65 @@
 - [x] 建立 network-controller server
 - [x] 建立 OVS 的 bridge (之後讓 pod 與它連接)
 - [x] 建立 network-controller client with 多個 network interface
-- [ ] 讓 OVS 給 ONOS 管理
+- [x] 讓 OVS 給 ONOS 管理
 
 ## Setup
-1. 在 VM 中安裝 OVS 和 Kubernetes
+### 1. 在 VM 中安裝 OVS 和 Kubernetes
 ```sh
 vagrant up
 ```
 
-2. 進到 VM 中安裝 ONOS
+### 2. 進到 VM 中安裝 ONOS
 ```sh
 $ vagrant ssd
 vagrant@kubecord-dev:~$ cd ~/helm-charts/ && helm install -n onos-fabric -f configs/onos-fabric.yaml onos
 ```
-Access web via `http://localhost:31181/onos/ui/login.html`  
-Default username and password are onos/rocks  
 
-3. 用 kubernetes 建立 network-controller server
+- Access web
+via `http://localhost:31181/onos/ui/login.html`  
+Default username and password are onos/rocks  
+- Access CLI
+```sh
+$ kubectl get all
+NAME                                       READY     STATUS    RESTARTS   AGE
+pod/onos-fabric-77b488c88f-mnqgk           1/1       Running   1          1h
+
+NAME                           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/kubernetes             ClusterIP   10.96.0.1        <none>        443/TCP          2h
+service/onos-fabric-openflow   NodePort    10.101.24.175    <none>        6653:31653/TCP   1h
+service/onos-fabric-ovsdb      NodePort    10.101.137.69    <none>        6640:31640/TCP   1h
+service/onos-fabric-ssh        NodePort    10.111.168.103   <none>        8101:31101/TCP   1h
+service/onos-fabric-ui         NodePort    10.102.41.6      <none>        8181:31181/TCP   1h
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/onos-fabric   1         1         1            1           1h
+
+NAME                                     DESIRED   CURRENT   READY     AGE
+replicaset.apps/onos-fabric-77b488c88f   1         1         1         1h
+```
+Access:  
+```sh
+vagrant@kubecord-dev:~$ ssh -p 8101 onos@10.111.168.103
+```
+or  
+```sh
+vagrant@kubecord-dev:~$ ssh -p 31101 onos@localhost
+```
+password is `rocks`
+
+
+### 3. 用 kubernetes 建立 network-controller server
 ```sh
 vagrant@kubecord-dev:~$ cd ~/network-controller && kubectl create -f deploy/server/
 ```
 
-4. 建立 OVS 的 bridge (之後讓 pod 與它連接)
+### 4. 建立 OVS 的 bridge (之後讓 pod 與它連接)
 ```sh
 vagrant@kubecord-dev:~$ sudo ovs-vsctl add-br br100
 vagrant@kubecord-dev:~$ sudo ovs-vsctl show
 ```
 
-5. 建立 network-controller client with 多個 network interface
+### 5. 建立 network-controller client with 多個 network interface
 eth100 是自己創建的 network interface 並且連接 OVS。  
 ```sh
 vagrant@kubecord-dev:~/network-controller$ cd ~/network-controller && kubectl create -f deploy/client/
@@ -68,6 +99,27 @@ vagrant@kubecord-dev:~/network-controller$ sudo ovs-vsctl show
                 type: internal
     ovs_version: "2.5.4"
 ```
+
+### 6. 讓 OVS 給 ONOS 管理
+```sh
+vagrant@kubecord-dev:~$ sudo ovs-vsctl set-controller br100 tcp:127.0.0.1:31653
+vagrant@kubecord-dev:~$ sudo ovs-vsctl show
+5c92933c-f8f4-4fd1-aaf5-0246f5a0c576
+    Manager "ptcp:31640"
+    Bridge "br100"
+        Controller "tcp:127.0.0.1:31653"
+            is_connected: true
+        Port "br100"
+            Interface "br100"
+                type: internal
+        Port "vethf18dfdd3"
+            Interface "vethf18dfdd3"
+        Port "veth7aba5522"
+            Interface "veth7aba5522"
+    ovs_version: "2.5.4"
+```
+- Check
+![](https://i.imgur.com/NdQs9QD.png)
 
 ## 其他
 如果要安裝桌面版
