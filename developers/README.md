@@ -1,5 +1,20 @@
 # Setup kubeCORD Env
 
+## Table of Contents
+* [說明](#說明)
+* [軟體需求](#軟體需求)
+* [進行想法](#進行想法)
+* [Setup](#setup)
+    + [1. 在 VM 中安裝 OVS 和 Kubernetes](#1-在-vm-中安裝-ovs-和-kubernetes)
+    + [2. 進到 VM 中安裝 ONOS](#2-進到-vm-中安裝-onos)
+    + [3. 用 kubernetes 建立 network-controller server](#3-用-kubernetes-建立-network-controller-server)
+    + [4. 建立 OVS 的 bridge (之後讓 pod 與它連接)](#4-建立-ovs-的-bridge-之後讓-pod-與它連接)
+    + [5. 建立 network-controller client with 多個 network interface](#5-建立-network-controller-client-with-多個-network-interface)
+    + [6. 讓 OVS 給 ONOS 管理](#6-讓-ovs-給-onos-管理)
+* [其他](#其他)
+* [參考資源](#參考資源)
+
+
 ## 說明
 在 host 上安裝 OVS，並在 Kubernetes 中加入 ONOS 以及建立一個擁有多個 network interface 的 pod 。讓 pod 與 OVS 連接，讓 ONOS 管理 host 上的 OVS。  
 
@@ -99,6 +114,7 @@ vagrant@kubecord-dev:~/network-controller$ sudo ovs-vsctl show
                 type: internal
     ovs_version: "2.5.4"
 ```
+> 在這步驟，可以見兩個 pod ，然後測試互 ping 可不可以成功。在同個 192.168.24.50/24 網段，是可以互 ping 成功的。
 
 ### 6. 讓 OVS 給 ONOS 管理
 ```sh
@@ -119,14 +135,43 @@ vagrant@kubecord-dev:~$ sudo ovs-vsctl show
     ovs_version: "2.5.4"
 ```
 - Check
-![](https://i.imgur.com/NdQs9QD.png)
+![](https://i.imgur.com/NdQs9QD.png)  
+```sh
+vagrant@kubecord-dev:~/network-controller$ ssh -p 31101 onos@localhost
+Password authentication
+Password:
+Welcome to Open Network Operating System (ONOS)!
+     ____  _  ______  ____
+    / __ \/ |/ / __ \/ __/
+   / /_/ /    / /_/ /\ \
+   \____/_/|_/\____/___/
+
+Documentation: wiki.onosproject.org
+Tutorials:     tutorials.onosproject.org
+Mailing lists: lists.onosproject.org
+
+Come help out! Find out how at: contribute.onosproject.org
+
+Hit '<tab>' for a list of available commands
+and '[cmd] --help' for help on a specific command.
+Hit '<ctrl-d>' or type 'system:shutdown' or 'logout' to shutdown ONOS.
+
+onos> devices
+id=of:0000120b2a6c2a45, available=true, local-status=connected 21m28s ago, role=MASTER, type=SWITCH, mfr=Nicira, Inc., hw=Open vSwitch, sw=2.5.4, serial=None, chassis=120b2a6c2a45, driver=ovs, channelId=10.244.0.1:33800, managementAddress=10.244.0.1, protocol=OF_13
+```
+### 7. Lab Time
+[lab.md](lab.md)
 
 ## 其他
-如果要安裝桌面版
+- 如果要安裝桌面版  
 ```
 $ sudo apt-get install ubuntu-desktop
 ```
+- 如果是 VM ，如果要 access 網頁，可以將 port fowrding 打開。
 
 ## 參考資源
-- https://www.sdntesting.com/installing-and-using-distributed-onos/
-
+- http://roan.logdown.com/posts/191801-set-openvswitch
+- http://www.openvswitch.org/support/dist-docs/ovs-vsctl.8.txt
+- https://wiki.onosproject.org/display/ONOS/CLI+and+Service+Tutorial
+- https://wiki.onosproject.org/display/ONOS/OVSDB+interaction+and+ONOS+cli+example
+- https://guide.opencord.org/charts/onos.html
