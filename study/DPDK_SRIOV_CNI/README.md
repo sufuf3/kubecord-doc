@@ -1,4 +1,27 @@
 # Multus CNI w/ SR-IOV & DPDK
+
+## Table of Contents
+* [前提摘要](#前提摘要)
+* [測試的硬體與軟體規格](#測試的硬體與軟體規格)
+  + [硬體](#硬體)
+  + [軟體](#軟體)
+* [安裝過程紀錄](#安裝過程紀錄)
+  + [1. 設定 Hugepages 為 1G for DPDK & Activate Intel VT-d in the kernel](#1-設定-hugepages-為-1g-for-dpdk--activate-intel-vt-d-in-the-kernel)
+    - [說明](#說明)
+    - [操作](#操作)
+  + [2. 安裝 DPDK](#2-安裝-dpdk)
+  + [3. 設定 Linux Drivers 的 kernel module](#3-設定-linux-drivers-的-kernel-module)
+  + [4. 綁定 Network Ports 到 Kernel Modules](#4-綁定-network-ports-到-kernel-modules)
+  + [5. 安裝支援 DPDK 的 `OVS` 在 host 上](#5-安裝支援-dpdk-的-ovs-在-host-上)
+  + [6. 建立 OVS 的 bridge](#6-建立-ovs-的-bridge)
+  + [7. 安裝 Docker + Kubernetes + helm 等](#7-安裝-docker--kubernetes--helm-等)
+  + [8. Multus CNI](#8-multus-cni)
+  + [9. ONOS with k8s](#9-onos-with-k8s)
+  + [10. 先測 podd 在 ovs bridge 底下的互通情形](#10-先測-podd-在-ovs-bridge-底下的互通情形)
+  + [11. 讓 OVS 給 ONOS 管理的測試](#11-讓-ovs-給-onos-管理的測試)
+* [其他](#其他)
+* [參考](#參考)
+
 ## 前提摘要
 實作一個 k8s 的 pod 支援多個 interface。且可以使用不同功能的 interface。  
 包含：  
