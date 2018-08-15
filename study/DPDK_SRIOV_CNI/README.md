@@ -31,6 +31,13 @@
 
 而因為使用 Multus CNI ，所以所有 pod 的網路建立都是交給 k8s 管理，增加方便性。  
 在硬體方面，實體主機上至少要有兩個 interface ，一個是給普通的 k8s 集群用的，一個不是給 DPDK ，要不然就是給 SR-IOV 。當然也可以有三個以上 interface 在實體主機上。  
+  
+### 初步構想
+![](https://i.imgur.com/8Zul73X.png)  
+- enp8s0: 走 k8s 使用的 flannel CNI，當作是 k8s 的管理介面
+- enp9s0: 使用 Multus CNI + DPDK
+- ens11f0: 使用 Multus CNI + DPDK + SR-IOV
+- ens11f1: 使用 Multus CNI + SR-IOV
 
 ## 測試的硬體與軟體規格
 ### 硬體
