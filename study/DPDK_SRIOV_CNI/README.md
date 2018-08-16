@@ -14,12 +14,13 @@
   + [3. 設定 Linux Drivers 的 kernel module](#3-設定-linux-drivers-的-kernel-module)
   + [4. 綁定 Network Ports 到 Kernel Modules](#4-綁定-network-ports-到-kernel-modules)
   + [5. 安裝支援 DPDK 的 `OVS` 在 host 上](#5-安裝支援-dpdk-的-ovs-在-host-上)
-  + [6. 建立 OVS 的 bridge](#6-建立-ovs-的-bridge)
-  + [7. 安裝 Docker + Kubernetes + helm 等](#7-安裝-docker--kubernetes--helm-等)
-  + [8. Multus CNI](#8-multus-cni)
-  + [9. ONOS with k8s](#9-onos-with-k8s)
-  + [10. 先測 podd 在 ovs bridge 底下的互通情形](#10-先測-podd-在-ovs-bridge-底下的互通情形)
-  + [11. 讓 OVS 給 ONOS 管理的測試](#11-讓-ovs-給-onos-管理的測試)
+  + [6. Setup Open vSwitch](#6-setup-open-vswitch)
+  + [7. 建立 OVS 的 bridge](#7-建立-ovs-的-bridge)
+  + [8. 安裝 Docker + Kubernetes + helm 等](#8-安裝-docker--kubernetes--helm-等)
+  + [9. Multus CNI](#9-multus-cni)
+  + [10. ONOS with k8s](#10-onos-with-k8s)
+  + [11. 先測 podd 在 ovs bridge 底下的互通情形](#11-先測-podd-在-ovs-bridge-底下的互通情形)
+  + [12. 讓 OVS 給 ONOS 管理的測試](#12-讓-ovs-給-onos-管理的測試)
 * [其他](#其他)
 * [參考](#參考)
 
@@ -251,11 +252,13 @@ export LD_LIBRARY_PATH=$DPDK_DIR/x86_64-native-linuxapp-gcc/lib
 > LD_LIBRARY_PATH: 如果 DPDK 是 shared library ，那這個環境變數是導出這個路徑給這個 lib 給 building OVS 用的
 
 - **3. Build 與安裝 DPDK library**
+
 ```sh
 $ cd $DPDK_DIR && sudo make install T=$DPDK_TARGET DESTDIR=install
 ```
 
 - **4. 設定 DPDK 為 shared library**
+
 ```
 $ sudo sed -i 's/CONFIG_RTE_BUILD_SHARED_LIB=n/CONFIG_RTE_BUILD_SHARED_LIB=y/g' ${DPDK_DIR}/config/common_base
 ```
@@ -274,12 +277,14 @@ $ sudo sed -i 's/CONFIG_RTE_BUILD_SHARED_LIB=n/CONFIG_RTE_BUILD_SHARED_LIB=y/g' 
 ##### UIO
 
 - **加 driver 的 kernel modules，load uio kernel module**
+
 [UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 是一個 kernel module ，來設定 device ，他會 map device memory 到 user-space ，並且 register interrupts。  
 ```sh
 $ sudo modprobe uio
 ```
 
 - **insert kmod/igb_uio  module 到 Linux Kernel**
+
 因為DPDK 有支援 igb_uio ，而這個 module 可以在 kmod 這個子目錄下找到。  
 (igb_uio 有支援 virtual function)  
 
@@ -406,7 +411,9 @@ $ ls /lib/modules/`uname -r`/kernel/drivers/net/ethernet/intel
 ```
 
 - **為兩個 ixgbe ports 創立兩個 vfs**
-先 unload Linux ixgbe driver modules ，再設定 `max_vfs=2,2` 並 reload 它。
+
+先 unload Linux ixgbe driver modules ，再設定 `max_vfs=2,2` 並 reload 它。  
+
 ```sh
 sudo rmmod ixgbe
 sudo modprobe ixgbe max_vfs=2,2
@@ -515,7 +522,8 @@ Other Mempool devices
 ```
 
 - **2. 設定前先把 interface 改成 down**
-(如果 interface 已經是 Down ，這步可以跳過)
+
+(如果 interface 已經是 Down ，這步可以跳過)  
 ```
 $ sudo ifconfig enp9s0 down
 $ sudo ifconfig ens11f0 down
@@ -523,11 +531,12 @@ $ sudo ifconfig ens11f0 down
 
 - **3. 綁定 device `enp0s8` & `ens11f0` 到 igb_uio**
 ```sh
-$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio enp0s8
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio enp0s9
 $ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio ens11f0
 ```
 
 - 使用 DPDK PMD PF driver時，插入 DPDK kernel mofule `igb_uio` 並按 `sysfs max_vfs` 設置 `VF` 數：
+
 > SR-IOV 的
 ```sh
 echo 2 > /sys/bus/pci/devices/0000\:01\:00.0/max_vfs
