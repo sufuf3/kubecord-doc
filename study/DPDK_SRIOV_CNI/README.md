@@ -65,7 +65,7 @@
     link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
 ```
 
-- **看看各個 interface 的 driver module**
+- 看看各個 interface 的 driver module
 ```sh
 $ ethtool -i enp8s0 | grep ^driver
 driver: igb
@@ -75,6 +75,14 @@ $ ethtool -i ens11f0 | grep ^driver
 driver: ixgbe
 $ ethtool -i ens11f1 | grep ^driver
 driver: ixgbe
+```
+- 網卡資訊
+```sh
+$ lspci | grep -i Ethernet
+01:00.0 Ethernet controller: Intel Corporation 82599ES 10-Gigabit SFI/SFP+ Network Connection (rev 01)
+01:00.1 Ethernet controller: Intel Corporation 82599ES 10-Gigabit SFI/SFP+ Network Connection (rev 01)
+08:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
+09:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
 ```
 > 可以支援 SR-IOV 的 interface 是 ens11f0 & ens11f1
 
@@ -249,6 +257,9 @@ $ sudo sed -i 's/CONFIG_RTE_BUILD_SHARED_LIB=n/CONFIG_RTE_BUILD_SHARED_LIB=y/g' 
 - 加 [UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 和 igb_uio 的 kernel module for driver。
 - 另外修改 `ixgbe` driver ，讓它直接使用 VF。
 
+- 參考
+    - https://www.intel.com/content/dam/www/public/us/en/documents/technology-briefs/xl710-sr-iov-config-guide-gbe-linux-brief.pdf
+    - https://doc.dpdk.org/guides-16.04/nics/intel_vf.html
 #### 操作
 ##### UIO
 - **加 driver 的 kernel modules，load uio kernel module**
@@ -274,8 +285,55 @@ echo "uio" | sudo tee -a /etc/modules
 echo "igb_uio" | sudo tee -a /etc/modules
 ```
 ##### ixgbe
+- **為兩個 ixgbe ports 創立兩個 vfs**
+先 unload Linux ixgbe driver modules ，再設定 `max_vfs=2,2` 並 reload 它。
+```sh
+rmmod ixgbe
+modprobe ixgbe max_vfs=2,2
+```
+- **開機後還是可以 load ixgbe 的設定**
+```sh
+echo "options ixgbe max_vfs=2,2" >> /etc/modprobe.d/ixgbe.conf
+```
+- 建立 2 個 VF 在 ens11f0 上 (臨時的)
+```
+$ echo 2 > /sys/class/net/ens11f0/device/sriov_numvfs
+$ ip link show
+```
 
+- 驗證 VF 是否 ok
+```sh
+$ lspci | grep -i 'Virtual Function'
+```
 ### 4. 綁定 Network Ports 到 Kernel Modules
+`usertools/dpdk-devbind.py` (a utility script) 可以用來綁定 port 到  igb_uio module ，這樣就可以使用 DPDK 囉！想知道更多可以使用 `--help` 或 `--usage`  
+- **1. 查看 network ports 的狀態**
+```sh
+$ ./usertools/dpdk-devbind.py --status
+```
+
+- **2. 設定前先把 interface 改成 down**
+```
+$ sudo ifconfig enp9s0 down
+$ sudo ifconfig ens11f0 down
+```
+
+- **3. 綁定 device `enp0s8` & `ens11f0` 到 igb_uio**
+```sh
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio enp0s8
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio ens11f0
+```
+
+- 使用 DPDK PMD PF driver時，插入 DPDK kernel mofule `igb_uio` 並按 `sysfs max_vfs` 設置 `VF` 數：
+> SR-IOV 的
+```sh
+echo 2 > /sys/bus/pci/devices/0000\:01\:00.0/max_vfs
+```
+
+- **5. 再看一次 network interface**
+```sh
+$ ./usertools/dpdk-devbind.py --status
+```
 
 ### 5. 安裝支援 DPDK 的 `OVS` 在 host 上
 
