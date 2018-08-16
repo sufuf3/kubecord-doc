@@ -1,6 +1,7 @@
 # Multus CNI w/ SR-IOV & DPDK
 
 ## Table of Contents
+
 * [前提摘要](#前提摘要)
 * [測試的硬體與軟體規格](#測試的硬體與軟體規格)
   + [硬體](#硬體)
@@ -23,6 +24,7 @@
 * [參考](#參考)
 
 ## 前提摘要
+
 實作一個 k8s 的 pod 支援多個 interface。且可以使用不同功能的 interface。  
 包含：  
 - k8s 原本的 CNI (eg. flannel)
@@ -41,6 +43,7 @@
 
 ## 測試的硬體與軟體規格
 ### 硬體
+
 - CPU
     - Architecture:          x86_64
     - CPU(s):                32
@@ -76,6 +79,7 @@ driver: ixgbe
 $ ethtool -i ens11f1 | grep ^driver
 driver: ixgbe
 ```
+
 - 網卡資訊
 ```sh
 $ lspci | grep -i Ethernet
@@ -94,9 +98,10 @@ OS: Ubuntu 16.04
 #### 說明
 
 - Hugepages  
-因為這台主機可以支援 1G 的 Hugepages。所以就用比較大的 Hugepages size。
-而 hugepage 的分配應該在開機後或是系統開機後越早做越好，因為要避免使用支離破碎的物理 Memory。(所以要使用完整的物理 Memory 空間)
-因為原本預設的 Hugepages size 2048 kb 大小，所以要設定 grub 來修正預設的 Hugepages size。
+因為這台主機可以支援 1G 的 Hugepages。所以就用比較大的 Hugepages size。  
+而 hugepage 的分配應該在開機後或是系統開機後越早做越好，因為要避免使用支離破碎的物理 Memory。(所以要使用完整的物理 Memory 空間)  
+因為原本預設的 Hugepages size 2048 kb 大小，所以要設定 grub 來修正預設的 Hugepages size。  
+
 - Activate Intel VT-d in the kernel
 
 #### 操作
@@ -153,6 +158,7 @@ $ reboot
 $ cat /proc/cmdline
 BOOT_IMAGE=/boot/vmlinuz-4.15.0-30-generic root=UUID=6dd5050f-5f5c-4b0f-8672-507b4161feaa ro transparent_hugepage=never default_hugepagesz=1G hugepagesz=1G hugepages=8 iommu=pt intel_iommu=on
 ```
+
 - **8. 確認使用 8 個 1G size 的 Hugepage**
 ```sh
 $ cat /proc/meminfo | grep Huge
@@ -199,6 +205,7 @@ $ sudo sysctl -w vm.nr_hugepages=8
 
 ### 2. 安裝 DPDK
 #### 說明
+
 雖然目前 DPDK 已經升版到 18.08 ，但因為目前 http://docs.openvswitch.org/en/latest/intro/install/dpdk/ 上面是提供 DPDK v17.11.3 的方法，所以先照文件做。  
 - **需要的工具以及 Libraries**
     - GNU `make`
@@ -216,6 +223,7 @@ $ sudo sysctl -w vm.nr_hugepages=8
         - HPET and HPET_MMAP (如果有用到 HPET 才要做)
 
 #### 操作
+
 - **0. 安裝 DPDK 的相依套件**
 ```sh
 $ sudo apt-get -qq update
@@ -254,14 +262,17 @@ $ sudo sed -i 's/CONFIG_RTE_BUILD_SHARED_LIB=n/CONFIG_RTE_BUILD_SHARED_LIB=y/g' 
 
 ### 3. 設定 Linux Drivers 的 kernel module
 #### 說明
+
 - 加 [UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 和 igb_uio 的 kernel module for driver。
 - 另外修改 `ixgbe` driver ，讓它直接使用 VF。
 
 - 參考
     - https://www.intel.com/content/dam/www/public/us/en/documents/technology-briefs/xl710-sr-iov-config-guide-gbe-linux-brief.pdf
     - https://doc.dpdk.org/guides-16.04/nics/intel_vf.html
+
 #### 操作
 ##### UIO
+
 - **加 driver 的 kernel modules，load uio kernel module**
 [UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 是一個 kernel module ，來設定 device ，他會 map device memory 到 user-space ，並且 register interrupts。  
 ```sh
@@ -271,6 +282,7 @@ $ sudo modprobe uio
 - **insert kmod/igb_uio  module 到 Linux Kernel**
 因為DPDK 有支援 igb_uio ，而這個 module 可以在 kmod 這個子目錄下找到。  
 (igb_uio 有支援 virtual function)  
+
 ```sh
 $ sudo insmod ${DPDK_DIR}/x86_64-native-linuxapp-gcc/kmod/igb_uio.ko
 ```
@@ -285,16 +297,19 @@ echo "uio" | sudo tee -a /etc/modules
 echo "igb_uio" | sudo tee -a /etc/modules
 ```
 ##### ixgbe
+
 - **為兩個 ixgbe ports 創立兩個 vfs**
 先 unload Linux ixgbe driver modules ，再設定 `max_vfs=2,2` 並 reload 它。
 ```sh
 rmmod ixgbe
 modprobe ixgbe max_vfs=2,2
 ```
+
 - **開機後還是可以 load ixgbe 的設定**
 ```sh
 echo "options ixgbe max_vfs=2,2" >> /etc/modprobe.d/ixgbe.conf
 ```
+
 - 建立 2 個 VF 在 ens11f0 上 (臨時的)
 ```
 $ echo 2 > /sys/class/net/ens11f0/device/sriov_numvfs
@@ -305,8 +320,11 @@ $ ip link show
 ```sh
 $ lspci | grep -i 'Virtual Function'
 ```
+
 ### 4. 綁定 Network Ports 到 Kernel Modules
+
 `usertools/dpdk-devbind.py` (a utility script) 可以用來綁定 port 到  igb_uio module ，這樣就可以使用 DPDK 囉！想知道更多可以使用 `--help` 或 `--usage`  
+
 - **1. 查看 network ports 的狀態**
 ```sh
 $ ./usertools/dpdk-devbind.py --status
