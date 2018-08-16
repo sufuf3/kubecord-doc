@@ -529,9 +529,9 @@ $ sudo ifconfig enp9s0 down
 $ sudo ifconfig ens11f0 down
 ```
 
-- **3. 綁定 device `enp0s8` & `ens11f0` 到 igb_uio**
+- **3. 綁定 device `enp9s0` & `ens11f0` 到 igb_uio**
 ```sh
-$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio enp0s9
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio enp9s0
 $ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio ens11f0
 ```
 
@@ -634,6 +634,20 @@ $ ovs-vswitchd  unix:/var/run/openvswitch/db.sock --pidfile --detach --log-file
 ```
 
 ### 7. 建立 OVS 的 bridge
+- create a userspace bridge named br0 and add two dpdk ports to it
+    - datapath_type: 是 datapath provider 的名稱。
+        - userspace datapath type: `netdev`
+        - kernel datapath type: `system`
+    - dpdk-devargs: 指定物理 driver 的 PCI address 或是 virtual driver 的 virtual PMD. 可以用 `cd $DPDK_DIR &&./usertools/dpdk-devbind.py --status` 查。(在 VM 這邊查到的名稱是 0000:00:09.0)
+
+```sh
+$ ovs-vsctl add-br br0 -- set bridge br0 datapath_type=netdev
+$ ovs-vsctl add-port br0 dpdk0 -- set Interface dpdk0 type=dpdk options:dpdk-devargs=0000:00:09.0
+```
+  
+== 設定完成 ==  
+使用 `htop` 可以看到第二顆 CPU core 用到 100%  
+
 
 ### 8. 安裝 Docker + Kubernetes + helm 等
 
