@@ -464,7 +464,7 @@ $ ip link show
 - **1. 查看 network ports 的狀態**
 ```sh
 
-$ ${DPDK_DIR}/usertools/dpdk-devbind.py --status
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --status
 Network devices using DPDK-compatible driver
 ============================================
 <none>
@@ -519,6 +519,34 @@ Mempool devices using kernel driver
 Other Mempool devices
 =====================
 <none>
+
+$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether cc:37:ab:e1:21:64 brd ff:ff:ff:ff:ff:ff
+    inet 140.113.60.4/25 brd 140.113.60.127 scope global enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ce37:abff:fee1:2164/64 scope link
+       valid_lft forever preferred_lft forever
+3: enp9s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    link/ether cc:37:ab:e1:21:65 brd ff:ff:ff:ff:ff:ff
+6: ens11f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    link/ether cc:37:ab:dd:f2:69 brd ff:ff:ff:ff:ff:ff
+7: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 62:33:90:12:89:bb brd ff:ff:ff:ff:ff:ff
+8: eth2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 4a:7c:fa:22:49:0f brd ff:ff:ff:ff:ff:ff
+9: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
+10: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 0a:a3:f8:65:06:0b brd ff:ff:ff:ff:ff:ff
+11: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 16:f1:61:38:ee:c0 brd ff:ff:ff:ff:ff:ff
 ```
 
 - **2. 設定前先把 interface 改成 down**
@@ -539,12 +567,86 @@ $ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --bind=igb_uio ens11f0
 
 > SR-IOV 的
 ```sh
-echo 2 > /sys/bus/pci/devices/0000\:01\:00.0/max_vfs
+$ echo 2 | sudo tee -a /sys/bus/pci/devices/0000\:01\:00.0/max_vfs
 ```
 
 - **5. 再看一次 network interface**
+
+DPDK 綁定好了  
 ```sh
-$ ./usertools/dpdk-devbind.py --status
+$ sudo ${DPDK_DIR}/usertools/dpdk-devbind.py --status
+
+Network devices using DPDK-compatible driver
+============================================
+0000:01:00.0 '82599ES 10-Gigabit SFI/SFP+ Network Connection 10fb' drv=igb_uio unused=ixgbe
+0000:09:00.0 'I210 Gigabit Network Connection 1533' drv=igb_uio unused=igb
+
+Network devices using kernel driver
+===================================
+0000:01:00.1 '82599ES 10-Gigabit SFI/SFP+ Network Connection 10fb' if=ens11f1 drv=ixgbe unused=igb_uio
+0000:01:10.1 '82599 Ethernet Controller Virtual Function 10ed' if=eth1 drv=ixgbevf unused=igb_uio
+0000:01:10.3 '82599 Ethernet Controller Virtual Function 10ed' if=eth2 drv=ixgbevf unused=igb_uio
+0000:08:00.0 'I210 Gigabit Network Connection 1533' if=enp8s0 drv=igb unused=igb_uio *Active*
+
+Other Network devices
+=====================
+<none>
+
+Crypto devices using DPDK-compatible driver
+===========================================
+<none>
+
+Crypto devices using kernel driver
+==================================
+<none>
+
+Other Crypto devices
+====================
+<none>
+
+Eventdev devices using DPDK-compatible driver
+=============================================
+<none>
+
+Eventdev devices using kernel driver
+====================================
+<none>
+
+Other Eventdev devices
+======================
+<none>
+
+Mempool devices using DPDK-compatible driver
+============================================
+<none>
+
+Mempool devices using kernel driver
+===================================
+<none>
+
+Other Mempool devices
+=====================
+<none>
+
+$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether cc:37:ab:e1:21:64 brd ff:ff:ff:ff:ff:ff
+    inet 140.113.60.4/25 brd 140.113.60.127 scope global enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ce37:abff:fee1:2164/64 scope link
+       valid_lft forever preferred_lft forever
+7: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 62:33:90:12:89:bb brd ff:ff:ff:ff:ff:ff
+8: eth2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 4a:7c:fa:22:49:0f brd ff:ff:ff:ff:ff:ff
+9: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
 ```
 
 ### 5. 安裝支援 DPDK 的 `OVS` 在 host 上
@@ -558,7 +660,7 @@ $ sudo pip install six
 ```sh
 $ cd ~/
 $ wget --quiet http://openvswitch.org/releases/openvswitch-2.9.2.tar.gz
-$4 sudo tar -zxf openvswitch-2.9.2.tar.gz -C /usr/src/
+$ sudo tar -zxf openvswitch-2.9.2.tar.gz -C /usr/src/
 ```
 
 - **設定 OVS_DIR 環境變數**
@@ -671,7 +773,7 @@ $ ovs-vsctl add-port br0 dpdk0 -- set Interface dpdk0 type=dpdk options:dpdk-dev
 ### 12. 讓 OVS 給 ONOS 管理的測試
 
 ## 其他
-依據 http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-dpdk-devices-using-vfio + https://www.jianshu.com/p/9bf690956d7d + https://doc.dpdk.org/guides-16.04/nics/intel_vf.html 看來可以 DPDK-OVS 把封包直接跳過 linux kernel 給 user space 處理，然後在 OVS 和實體網卡中間的通道使用 SR-IOV 。
+依據 http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-dpdk-devices-using-vfio + https://www.jianshu.com/p/9bf690956d7d + https://doc.dpdk.org/guides-16.04/nics/intel_vf.html + http://www.i4box.com/blog/2017/12/13/sriov-plus-dpdkce-shi/ 看來可以 DPDK-OVS 把封包直接跳過 linux kernel 給 user space 處理，然後在 OVS 和實體網卡中間的通道使用 SR-IOV 。
 
 ## 參考
 - https://github.com/sufuf3/network-study-notes/tree/master/DPDK_OVS
