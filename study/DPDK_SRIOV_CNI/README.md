@@ -297,28 +297,157 @@ echo "uio" | sudo tee -a /etc/modules
 echo "igb_uio" | sudo tee -a /etc/modules
 ```
 ##### ixgbe
+> 參考：http://ask.xmodulo.com/download-install-ixgbe-driver-ubuntu-debian.html  
+
+- 下載 [`ixgbe-5.3.7.tar.gz`](https://downloadcenter.intel.com/zh-tw/download/14687)
+
+- 解壓縮與安裝
+```sh
+$ mkdir ~/ixgbe
+$ tar xvfvz ixgbe-5.3.7.tar.gz -C ~/ixgbe
+$ cd ~/ixgbe/ixgbe-5.3.7/src
+$ sudo make
+```
+
+- 確認
+```sh
+$ modinfo ./ixgbe.ko
+filename:       /home/cord/ixgbe/ixgbe-5.3.7/src/./ixgbe.ko
+version:        5.3.7
+license:        GPL
+description:    Intel(R) 10GbE PCI Express Linux Network Driver
+author:         Intel Corporation, <linux.nics@intel.com>
+srcversion:     9E1B3824190E963083DADF5
+alias:          pci:v00008086d000015E5sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015E4sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015CEsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015CCsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015CAsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C8sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C7sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C6sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C4sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C3sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015C2sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015AEsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015ADsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015ACsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015ABsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015B0sv*sd*bc*sc*i*
+alias:          pci:v00008086d000015AAsv*sd*bc*sc*i*
+alias:          pci:v00008086d000015D1sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001563sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001560sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001558sv*sd*bc*sc*i*
+alias:          pci:v00008086d0000154Asv*sd*bc*sc*i*
+alias:          pci:v00008086d00001557sv*sd*bc*sc*i*
+alias:          pci:v00008086d0000154Fsv*sd*bc*sc*i*
+alias:          pci:v00008086d0000154Dsv*sd*bc*sc*i*
+alias:          pci:v00008086d00001528sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010F8sv*sd*bc*sc*i*
+alias:          pci:v00008086d0000151Csv*sd*bc*sc*i*
+alias:          pci:v00008086d00001529sv*sd*bc*sc*i*
+alias:          pci:v00008086d0000152Asv*sd*bc*sc*i*
+alias:          pci:v00008086d000010F9sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001514sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001507sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010FBsv*sd*bc*sc*i*
+alias:          pci:v00008086d00001517sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010FCsv*sd*bc*sc*i*
+alias:          pci:v00008086d000010F7sv*sd*bc*sc*i*
+alias:          pci:v00008086d00001508sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010DBsv*sd*bc*sc*i*
+alias:          pci:v00008086d000010F4sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010E1sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010F1sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010ECsv*sd*bc*sc*i*
+alias:          pci:v00008086d000010DDsv*sd*bc*sc*i*
+alias:          pci:v00008086d0000150Bsv*sd*bc*sc*i*
+alias:          pci:v00008086d000010C8sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010C7sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010C6sv*sd*bc*sc*i*
+alias:          pci:v00008086d000010B6sv*sd*bc*sc*i*
+depends:        ptp,dca
+retpoline:      Y
+name:           ixgbe
+vermagic:       4.15.0-30-generic SMP mod_unload
+parm:           EEE:Energy Efficient Ethernet (EEE) ,0=disabled, 1=enabled )default EEE disable (array of int)
+parm:           InterruptType:Change Interrupt Mode (0=Legacy, 1=MSI, 2=MSI-X), default IntMode (deprecated) (array of int)
+parm:           IntMode:Change Interrupt Mode (0=Legacy, 1=MSI, 2=MSI-X), default 2 (array of int)
+parm:           MQ:Disable or enable Multiple Queues, default 1 (array of int)
+parm:           DCA:Disable or enable Direct Cache Access, 0=disabled, 1=descriptor only, 2=descriptor and data (array of int)
+parm:           RSS:Number of Receive-Side Scaling Descriptor Queues, default 0=number of cpus (array of int)
+parm:           VMDQ:Number of Virtual Machine Device Queues: 0/1 = disable (1 queue) 2-16 enable (default=8) (array of int)
+parm:           max_vfs:Number of Virtual Functions: 0 = disable (default), 1-63 = enable this many VFs (array of int)
+parm:           VEPA:VEPA Bridge Mode: 0 = VEB (default), 1 = VEPA (array of int)
+parm:           InterruptThrottleRate:Maximum interrupts per second, per vector, (0,1,956-488281), default 1 (array of int)
+parm:           LLIPort:Low Latency Interrupt TCP Port (0-65535) (array of int)
+parm:           LLIPush:Low Latency Interrupt on TCP Push flag (0,1) (array of int)
+parm:           LLISize:Low Latency Interrupt on Packet Size (0-1500) (array of int)
+parm:           LLIEType:Low Latency Interrupt Ethernet Protocol Type (array of int)
+parm:           LLIVLANP:Low Latency Interrupt on VLAN priority threshold (array of int)
+parm:           FdirPballoc:Flow Director packet buffer allocation level:
+            1 = 8k hash filters or 2k perfect filters
+            2 = 16k hash filters or 4k perfect filters
+            3 = 32k hash filters or 8k perfect filters (array of int)
+parm:           AtrSampleRate:Software ATR Tx packet sample rate (array of int)
+parm:           FCoE:Disable or enable FCoE Offload, default 1 (array of int)
+parm:           MDD:Malicious Driver Detection: (0,1), default 1 = on (array of int)
+parm:           LRO:Large Receive Offload (0,1), default 0 = off (array of int)
+parm:           allow_unsupported_sfp:Allow unsupported and untested SFP+ modules on 82599 based adapters, default 0 = Disable (array of int)
+parm:           dmac_watchdog:DMA coalescing watchdog in microseconds (0,41-10000), default 0 = off (array of int)
+parm:           vxlan_rx:VXLAN receive checksum offload (0,1), default 1 = Enable (array of int)
+```
+
+- Install Ixgbe Driver on your system & check
+```sh
+$ sudo make install
+$ ls /lib/modules/`uname -r`/kernel/drivers/net/ethernet/intel
+```
 
 - **為兩個 ixgbe ports 創立兩個 vfs**
 先 unload Linux ixgbe driver modules ，再設定 `max_vfs=2,2` 並 reload 它。
 ```sh
-rmmod ixgbe
-modprobe ixgbe max_vfs=2,2
+sudo rmmod ixgbe
+sudo modprobe ixgbe max_vfs=2,2
 ```
 
 - **開機後還是可以 load ixgbe 的設定**
 ```sh
-echo "options ixgbe max_vfs=2,2" >> /etc/modprobe.d/ixgbe.conf
+echo "options ixgbe max_vfs=2,2" | sudo tee -a /etc/modprobe.d/ixgbe.conf
 ```
 
-- 建立 2 個 VF 在 ens11f0 上 (臨時的)
-```
-$ echo 2 > /sys/class/net/ens11f0/device/sriov_numvfs
-$ ip link show
-```
 
 - 驗證 VF 是否 ok
 ```sh
 $ lspci | grep -i 'Virtual Function'
+01:10.0 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
+01:10.1 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
+01:10.2 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
+01:10.3 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
+$ ip link show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000
+    link/ether cc:37:ab:e1:21:64 brd ff:ff:ff:ff:ff:ff
+3: enp9s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether cc:37:ab:e1:21:65 brd ff:ff:ff:ff:ff:ff
+6: ens11f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether cc:37:ab:dd:f2:69 brd ff:ff:ff:ff:ff:ff
+    vf 0 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 1 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+7: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 62:33:90:12:89:bb brd ff:ff:ff:ff:ff:ff
+8: eth2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 4a:7c:fa:22:49:0f brd ff:ff:ff:ff:ff:ff
+9: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
+    vf 0 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 1 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+10: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 0a:a3:f8:65:06:0b brd ff:ff:ff:ff:ff:ff
+11: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 16:f1:61:38:ee:c0 brd ff:ff:ff:ff:ff:ff
 ```
 
 ### 4. 綁定 Network Ports 到 Kernel Modules
@@ -327,10 +456,66 @@ $ lspci | grep -i 'Virtual Function'
 
 - **1. 查看 network ports 的狀態**
 ```sh
-$ ./usertools/dpdk-devbind.py --status
+
+$ ${DPDK_DIR}/usertools/dpdk-devbind.py --status
+Network devices using DPDK-compatible driver
+============================================
+<none>
+
+Network devices using kernel driver
+===================================
+0000:01:00.0 '82599ES 10-Gigabit SFI/SFP+ Network Connection 10fb' if=ens11f0 drv=ixgbe unused=igb_uio
+0000:01:00.1 '82599ES 10-Gigabit SFI/SFP+ Network Connection 10fb' if=ens11f1 drv=ixgbe unused=igb_uio
+0000:01:10.0 '82599 Ethernet Controller Virtual Function 10ed' if=eth0 drv=ixgbevf unused=igb_uio
+0000:01:10.1 '82599 Ethernet Controller Virtual Function 10ed' if=eth1 drv=ixgbevf unused=igb_uio
+0000:01:10.2 '82599 Ethernet Controller Virtual Function 10ed' if=eth3 drv=ixgbevf unused=igb_uio
+0000:01:10.3 '82599 Ethernet Controller Virtual Function 10ed' if=eth2 drv=ixgbevf unused=igb_uio
+0000:08:00.0 'I210 Gigabit Network Connection 1533' if=enp8s0 drv=igb unused=igb_uio *Active*
+0000:09:00.0 'I210 Gigabit Network Connection 1533' if=enp9s0 drv=igb unused=igb_uio
+
+Other Network devices
+=====================
+<none>
+
+Crypto devices using DPDK-compatible driver
+===========================================
+<none>
+
+Crypto devices using kernel driver
+==================================
+<none>
+
+Other Crypto devices
+====================
+<none>
+
+Eventdev devices using DPDK-compatible driver
+=============================================
+<none>
+
+Eventdev devices using kernel driver
+====================================
+<none>
+
+Other Eventdev devices
+======================
+<none>
+
+Mempool devices using DPDK-compatible driver
+============================================
+<none>
+
+Mempool devices using kernel driver
+===================================
+<none>
+
+Other Mempool devices
+=====================
+<none>
 ```
 
 - **2. 設定前先把 interface 改成 down**
+(如果 interface 已經是 Down ，這步可以跳過)
 ```
 $ sudo ifconfig enp9s0 down
 $ sudo ifconfig ens11f0 down
@@ -355,11 +540,95 @@ $ ./usertools/dpdk-devbind.py --status
 
 ### 5. 安裝支援 DPDK 的 `OVS` 在 host 上
 
-### 6. 建立 OVS 的 bridge
+- **安裝必要的 pip 套件**
+```sh
+$ sudo pip install six
+```
 
-### 7. 安裝 Docker + Kubernetes + helm 等
+- **1. 下載 OVS 安裝包**
+```sh
+$ cd ~/
+$ wget --quiet http://openvswitch.org/releases/openvswitch-2.9.2.tar.gz
+$4 sudo tar -zxf openvswitch-2.9.2.tar.gz -C /usr/src/
+```
 
-### 8. Multus CNI
+- **設定 OVS_DIR 環境變數**
+```sh
+$ export OVS_DIR=/usr/src/openvswitch-2.9.2
+```
+
+- **編譯 OVS**
+```sh
+cd $OVS_DIR
+./boot.sh
+CFLAGS='-march=native' ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-dpdk=$DPDK_BUILD
+make && sudo make install
+sudo mkdir -p /etc/openvswitch
+sudo mkdir -p /var/run/openvswitch
+sudo mkdir -p /var/log/openvswitch
+```
+
+- **新增一個 ovsdb**
+```sh
+$ sudo ovsdb-tool create /etc/openvswitch/conf.db vswitchd/vswitch.ovsschema
+```
+
+- **關機後可以用 OVS**
+```
+$ echo 'export PATH=$PATH:/usr/local/share/openvswitch/scripts' | sudo tee -a /root/.bashrc
+$ echo "openvswitch" | sudo tee -a /etc/modules
+```
+### 6. Setup Open vSwitch
+
+> http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-ovs
+
+- **1. 設定 Open vSwitch 的遠端 database server**
+```
+$ ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach --log-file
+```
+- **2. 設定 ovs-vswitchd**
+> http://www.openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.txt  
+
+- init ovs-vswitchd
+```sh
+$ ovs-vsctl --no-wait init
+```
+
+- DPDK 的參數傳遞給 ovs-vswitchd ，透過 `Open_vSwitch` table 的 `other_config` 欄位。
+    - the dpdk-init option must be set to either `true` or `try`
+```sh
+$ ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+```
+
+- 從預先配置的 hugepage pool 中指定要給的 memory 量，on a per-socket basis。
+```sh
+$ ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="1024"
+```
+
+- 設定 cpu affinity 的 PMD  (Poll Mode Driver) threads 透過特定的 CPU mask
+    - hex string
+    - 最低位對應於第一個 CPU core。
+```
+$ ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0x2
+```
+
+- idle 的 flows 在 datapath 中 cached 的最大時間(in ms)
+    - default is 10000
+    - at least 500
+```sh
+$ ovs-vsctl --no-wait set Open_vSwitch . other_config:max-idle=30000
+```
+
+- **[Open vSwitch daemon](http://www.openvswitch.org/support/dist-docs/ovs-vswitchd.8.html) 設定**
+```sh
+$ ovs-vswitchd  unix:/var/run/openvswitch/db.sock --pidfile --detach --log-file
+```
+
+### 7. 建立 OVS 的 bridge
+
+### 8. 安裝 Docker + Kubernetes + helm 等
+
+### 9. Multus CNI
 #### 說明
 
 - **使用到的 CNI**
@@ -372,11 +641,11 @@ $ ./usertools/dpdk-devbind.py --status
 
 #### 操作
 
-### 9. ONOS with k8s
+### 10. ONOS with k8s
 
-### 10. 先測 podd 在 ovs bridge 底下的互通情形
+### 11. 先測 podd 在 ovs bridge 底下的互通情形
 
-### 11. 讓 OVS 給 ONOS 管理的測試
+### 12. 讓 OVS 給 ONOS 管理的測試
 
 ## 其他
 依據 http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-dpdk-devices-using-vfio + https://www.jianshu.com/p/9bf690956d7d + https://doc.dpdk.org/guides-16.04/nics/intel_vf.html 看來可以 DPDK-OVS 把封包直接跳過 linux kernel 給 user space 處理，然後在 OVS 和實體網卡中間的通道使用 SR-IOV 。
@@ -389,3 +658,5 @@ $ ./usertools/dpdk-devbind.py --status
 - https://blog.pichuang.com.tw/nfv-sr-iov/#more-61
 - https://github.com/sufuf3/kubecord/tree/master/developers
 - http://connect.linaro.org.s3.amazonaws.com/hkg18/presentations/hkg18-121.pdf
+- https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/virtualization_host_configuration_and_guest_installation_guide/sect-virtualization_host_configuration_and_guest_installation_guide-sr_iov-how_sr_iov_libvirt_works
+- https://doc.dpdk.org/guides-16.04/nics/intel_vf.html
