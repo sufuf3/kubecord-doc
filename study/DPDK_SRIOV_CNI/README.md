@@ -64,6 +64,20 @@
 5: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
     link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
 ```
+
+- **看看各個 interface 的 driver module**
+```sh
+$ ethtool -i enp8s0 | grep ^driver
+driver: igb
+$ ethtool -i enp9s0 | grep ^driver
+driver: igb
+$ ethtool -i ens11f0 | grep ^driver
+driver: ixgbe
+$ ethtool -i ens11f1 | grep ^driver
+driver: ixgbe
+```
+> 可以支援 SR-IOV 的 interface 是 ens11f0 & ens11f1
+
 ### 軟體
 OS: Ubuntu 16.04
 
@@ -78,17 +92,17 @@ OS: Ubuntu 16.04
 - Activate Intel VT-d in the kernel
 
 #### 操作
-- 先把原本的檔案做個備份
+- **1. 先把原本的檔案做個備份**
 ```sh
 $ sudo cp /etc/default/grub /etc/default/grub.old
 ```
 
-- 確認已經有 enable VT-d
+- **2. 確認已經有 enable VT-d**
 ```sh
 $ cat /proc/cpuinfo | grep vmx
 ```
 
-- 查看原本的 hugepage 配置
+- **3. 查看原本的 hugepage 配置**
 ```sh
 $ cat /proc/meminfo | grep Huge
 AnonHugePages:         0 kB
@@ -100,7 +114,7 @@ HugePages_Surp:        0
 Hugepagesize:       2048 kB
 ```
 
-- 編輯 /etc/default/grub
+- **4. 編輯 /etc/default/grub**
 ```sh
 GRUB_DEFAULT=0
 GRUB_HIDDEN_TIMEOUT=0
@@ -112,7 +126,7 @@ GRUB_CMDLINE_LINUX="transparent_hugepage=never default_hugepagesz=1G hugepagesz=
 ```
 > Ref: http://dpdk.readthedocs.io/en/v16.04/linux_gsg/nic_perf_intel_platform.html  
 
-- Update grub
+- **5. Update grub**
 ```sh
 $ sudo update-grub
 Generating grub configuration file ...
@@ -121,17 +135,17 @@ Found initrd image: /boot/initrd.img-4.15.0-30-generic
 done
 ```
 
-- 重啟主機
+- **6. 重啟主機**
 ```sh
 $ reboot
 ```
 
-- 確認 /proc/cmdline
+- **7. 確認 /proc/cmdline**
 ```sh
 $ cat /proc/cmdline
 BOOT_IMAGE=/boot/vmlinuz-4.15.0-30-generic root=UUID=6dd5050f-5f5c-4b0f-8672-507b4161feaa ro transparent_hugepage=never default_hugepagesz=1G hugepagesz=1G hugepages=8 iommu=pt intel_iommu=on
 ```
-- 確認使用 8 個 1G size 的 Hugepage
+- **8. 確認使用 8 個 1G size 的 Hugepage**
 ```sh
 $ cat /proc/meminfo | grep Huge
 AnonHugePages:         0 kB
@@ -144,7 +158,7 @@ Hugepagesize:    1048576 kB
 ```
 htop 也會看到使用 8G 的 memory。
 
-- 確認 IOMMU
+- **9. 確認 IOMMU**
 ```sh
 $ dmesg | grep -e IOMMU
 [    0.000000] DMAR: IOMMU enabled
@@ -160,24 +174,106 @@ $ cat /sys/class/net/ens11f0/device/sriov_totalvfs
 63
 ```
 
-- Setting hugepage number
+- **10. Setting hugepage number**
 ```sh
 $ echo 'vm.nr_hugepages=8' | sudo tee /etc/sysctl.d/hugepages.conf
 ```
 
-- Mount hugepages
+- **11. Mount hugepages**
 ```sh
 $ sudo mount -t hugetlbfs none /dev/hugepages
 ```
 
-- 設定 kernel 變數在執行的時候
+- **12. 設定 kernel 變數在執行的時候**
 ```sh
 $ sudo sysctl -w vm.nr_hugepages=8
 ```
 
 ### 2. 安裝 DPDK
+#### 說明
+雖然目前 DPDK 已經升版到 18.08 ，但因為目前 http://docs.openvswitch.org/en/latest/intro/install/dpdk/ 上面是提供 DPDK v17.11.3 的方法，所以先照文件做。  
+- **需要的工具以及 Libraries**
+    - GNU `make`
+    - coreutils: `cmp`, `sed`, `grep`, `arch`, etc.
+    - gcc v4.9 以上
+    - libc headers: gcc-multilib
+    - libnuma-devel: 用於處理 NUMA (Non Uniform Memory Access).
+    - Python, 版本 2.7+ 或 3.2+
+- **系統軟體**
+    - Kernel 版本 >= 3.2 (檢查方法： `uname -r`)
+    - glibc >= 2.7 (檢查方法：`ldd --version`)
+    - Kernel config: 應該啟用 DPDK 的選項
+        - HUGETLBFS
+        - PROC_PAGE_MONITOR support
+        - HPET and HPET_MMAP (如果有用到 HPET 才要做)
+
+#### 操作
+- **0. 安裝 DPDK 的相依套件**
+```sh
+$ sudo apt-get -qq update
+$ sudo apt-get -y -qq install clang doxygen hugepages build-essential libnuma-dev libpcap-dev inux-headers-`uname -r` dh-autoreconf libssl-dev libcap-ng-dev openssl python python-pip htop
+$ sudo pip install six
+```
+
+- **1. 下載 DPDK 安裝包**
+```sh
+$ wget --quiet https://fast.dpdk.org/rel/dpdk-17.11.3.tar.xz
+$ sudo tar xf dpdk-17.11.3.tar.xz -C /usr/src/
+```
+
+-  **2. 設定 DPDK 相關的環境變數**
+```sh
+echo 'export DPDK_DIR=/usr/src/dpdk-stable-17.11.3' | sudo tee -a /root/.bashrc
+echo 'export LD_LIBRARY_PATH=$DPDK_DIR/x86_64-native-linuxapp-gcc/lib' | sudo tee -a /root/.bashrc
+echo 'export DPDK_TARGET=x86_64-native-linuxapp-gcc' | sudo tee -a /root/.bashrc
+echo 'export DPDK_BUILD=$DPDK_DIR/$DPDK_TARGET' | sudo tee -a /root/.bashrc
+export DPDK_DIR=/usr/src/dpdk-stable-17.11.3
+export DPDK_TARGET=x86_64-native-linuxapp-gcc
+export DPDK_BUILD=$DPDK_DIR/$DPDK_TARGET
+export LD_LIBRARY_PATH=$DPDK_DIR/x86_64-native-linuxapp-gcc/lib
+```
+> LD_LIBRARY_PATH: 如果 DPDK 是 shared library ，那這個環境變數是導出這個路徑給這個 lib 給 building OVS 用的
+
+- **3. Build 與安裝 DPDK library**
+```sh
+$ cd $DPDK_DIR && sudo make install T=$DPDK_TARGET DESTDIR=install
+```
+
+- **4. 設定 DPDK 為 shared library**
+```
+$ sudo sed -i 's/CONFIG_RTE_BUILD_SHARED_LIB=n/CONFIG_RTE_BUILD_SHARED_LIB=y/g' ${DPDK_DIR}/config/common_base
+```
 
 ### 3. 設定 Linux Drivers 的 kernel module
+#### 說明
+- 加 [UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 和 igb_uio 的 kernel module for driver。
+- 另外修改 `ixgbe` driver ，讓它直接使用 VF。
+
+#### 操作
+##### UIO
+- **加 driver 的 kernel modules，load uio kernel module**
+[UIO(Userspace IO)](https://github.com/torvalds/linux/tree/master/drivers/uio) 是一個 kernel module ，來設定 device ，他會 map device memory 到 user-space ，並且 register interrupts。  
+```sh
+$ sudo modprobe uio
+```
+
+- **insert kmod/igb_uio  module 到 Linux Kernel**
+因為DPDK 有支援 igb_uio ，而這個 module 可以在 kmod 這個子目錄下找到。  
+(igb_uio 有支援 virtual function)  
+```sh
+$ sudo insmod ${DPDK_DIR}/x86_64-native-linuxapp-gcc/kmod/igb_uio.ko
+```
+
+PS. 與 UIO 相比，[VFIO](https://github.com/torvalds/linux/tree/master/drivers/vfio) driver 更加強大與安全(http://doc.dpdk.org/guides/linux_gsg/linux_drivers.html )。但這次不用。  
+
+- **開機後還是可以 load UIO 的設定**
+```sh
+sudo ln -sf ${DPDK_DIR}/x86_64-native-linuxapp-gcc/kmod/igb_uio.ko /lib/modules/`uname -r`
+sudo depmod -a
+echo "uio" | sudo tee -a /etc/modules
+echo "igb_uio" | sudo tee -a /etc/modules
+```
+##### ixgbe
 
 ### 4. 綁定 Network Ports 到 Kernel Modules
 
@@ -188,6 +284,17 @@ $ sudo sysctl -w vm.nr_hugepages=8
 ### 7. 安裝 Docker + Kubernetes + helm 等
 
 ### 8. Multus CNI
+#### 說明
+
+- **使用到的 CNI**
+    - Multus CNI: https://github.com/intel/multus-cni
+    - SR-IOV: https://github.com/intel/sriov-cni
+    - OVS-DPDK + CNI: https://github.com/intel/vhost-user-net-plugin
+
+- **參考**
+    - http://www.txtlxg.com/blog.csdn.net/cloudvtech/article/details/80221988
+
+#### 操作
 
 ### 9. ONOS with k8s
 
@@ -196,7 +303,7 @@ $ sudo sysctl -w vm.nr_hugepages=8
 ### 11. 讓 OVS 給 ONOS 管理的測試
 
 ## 其他
-依據 http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-dpdk-devices-using-vfio 看來可以 DPDK-OVS 把封包直接跳過 linux kernel 給 user space 處理，然後在 OVS 和實體網卡中間的通道使用 SR-IOV 。
+依據 http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-dpdk-devices-using-vfio + https://www.jianshu.com/p/9bf690956d7d + https://doc.dpdk.org/guides-16.04/nics/intel_vf.html 看來可以 DPDK-OVS 把封包直接跳過 linux kernel 給 user space 處理，然後在 OVS 和實體網卡中間的通道使用 SR-IOV 。
 
 ## 參考
 - https://github.com/sufuf3/network-study-notes/tree/master/DPDK_OVS
@@ -205,3 +312,4 @@ $ sudo sysctl -w vm.nr_hugepages=8
 - https://docs.openstack.org/liberty/networking-guide/adv-config-sriov.html
 - https://blog.pichuang.com.tw/nfv-sr-iov/#more-61
 - https://github.com/sufuf3/kubecord/tree/master/developers
+- http://connect.linaro.org.s3.amazonaws.com/hkg18/presentations/hkg18-121.pdf
