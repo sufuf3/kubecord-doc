@@ -14,9 +14,9 @@
   + [3. 設定 Linux Drivers 的 kernel module](#3-設定-linux-drivers-的-kernel-module)
   + [4. 綁定 Network Ports 到 Kernel Modules](#4-綁定-network-ports-到-kernel-modules)
   + [5. 安裝支援 DPDK 的 `OVS` 在 host 上](#5-安裝支援-dpdk-的-ovs-在-host-上)
-  + [6. Setup Open vSwitch](#6-setup-open-vswitch)
-  + [7. 建立 OVS 的 bridge](#7-建立-ovs-的-bridge)
-  + [8. 安裝 Docker + Kubernetes + helm 等](#8-安裝-docker--kubernetes--helm-等)
+  + [6. Setup Open vSwitch](#setup-ovs.md)
+  + [7. 安裝 Docker + Kubernetes + helm 等](#7-安裝-docker--kubernetes--helm-等)
+  + [8. 建立 OVS 的 bridge](#8-建立-ovs-的-bridge)
   + [9. Multus CNI](#9-multus-cni)
   + [10. ONOS with k8s](#10-onos-with-k8s)
   + [11. 先測 podd 在 ovs bridge 底下的互通情形](#11-先測-podd-在-ovs-bridge-底下的互通情形)
@@ -690,52 +690,13 @@ $ echo 'export PATH=$PATH:/usr/local/share/openvswitch/scripts' | sudo tee -a /r
 $ echo "openvswitch" | sudo tee -a /etc/modules
 ```
 ### 6. Setup Open vSwitch
-
+Move to [setup-ovs.md](setup-ovs.md)
 > http://docs.openvswitch.org/en/latest/intro/install/dpdk/#setup-ovs
 
-- **1. 設定 Open vSwitch 的遠端 database server**
-```
-$ ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach --log-file
-```
-- **2. 設定 ovs-vswitchd**
-> http://www.openvswitch.org/support/dist-docs/ovs-vswitchd.conf.db.5.txt  
 
-- init ovs-vswitchd
-```sh
-$ ovs-vsctl --no-wait init
-```
+### 7. 安裝 Docker + Kubernetes + helm 等
 
-- DPDK 的參數傳遞給 ovs-vswitchd ，透過 `Open_vSwitch` table 的 `other_config` 欄位。
-    - the dpdk-init option must be set to either `true` or `try`
-```sh
-$ ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
-```
-
-- 從預先配置的 hugepage pool 中指定要給的 memory 量，on a per-socket basis。
-```sh
-$ ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="1024"
-```
-
-- 設定 cpu affinity 的 PMD  (Poll Mode Driver) threads 透過特定的 CPU mask
-    - hex string
-    - 最低位對應於第一個 CPU core。
-```
-$ ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0x2
-```
-
-- idle 的 flows 在 datapath 中 cached 的最大時間(in ms)
-    - default is 10000
-    - at least 500
-```sh
-$ ovs-vsctl --no-wait set Open_vSwitch . other_config:max-idle=30000
-```
-
-- **[Open vSwitch daemon](http://www.openvswitch.org/support/dist-docs/ovs-vswitchd.8.html) 設定**
-```sh
-$ ovs-vswitchd  unix:/var/run/openvswitch/db.sock --pidfile --detach --log-file
-```
-
-### 7. 建立 OVS 的 bridge
+### 8. 建立 OVS 的 bridge
 - create a userspace bridge named br0 and add two dpdk ports to it
     - datapath_type: 是 datapath provider 的名稱。
         - userspace datapath type: `netdev`
@@ -751,7 +712,6 @@ $ ovs-vsctl add-port br0 dpdk0 -- set Interface dpdk0 type=dpdk options:dpdk-dev
 使用 `htop` 可以看到第二顆 CPU core 用到 100%  
 
 
-### 8. 安裝 Docker + Kubernetes + helm 等
 
 ### 9. Multus CNI
 #### 說明
