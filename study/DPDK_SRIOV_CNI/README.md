@@ -729,6 +729,7 @@ $ ovs-vsctl add-port br0 dpdk0 -- set Interface dpdk0 type=dpdk options:dpdk-dev
     - http://www.txtlxg.com/blog.csdn.net/cloudvtech/article/details/80221988
 
 #### 操作
+- [Multus+sriov+ovsdpdk](multus.md)
 
 ### 10. ONOS with k8s
 
