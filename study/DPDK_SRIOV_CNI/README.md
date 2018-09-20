@@ -695,10 +695,7 @@ Move to [setup-ovs.md](setup-ovs.md)
 
 
 ### 7. 安裝 Docker + Kubernetes + helm 等
-
-```sh
-curl -Lo- https://raw.githubusercontent.com/sufuf3/kubecord/master/study/DPDK_SRIOV_CNI/k8s-install-script.sh | bash
-```
+Use kubespray: https://github.com/linkernetworks/kubespray/tree/sufuf3/update-kubespray
 
 ### 8. 建立 OVS 的 bridge
 - create a userspace bridge named br0 and add two dpdk ports to it
