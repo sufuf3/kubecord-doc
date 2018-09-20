@@ -412,16 +412,16 @@ $ ls /lib/modules/`uname -r`/kernel/drivers/net/ethernet/intel
 
 - **為兩個 ixgbe ports 創立兩個 vfs**
 
-先 unload Linux ixgbe driver modules ，再設定 `max_vfs=40,40` 並 reload 它。  
+先 unload Linux ixgbe driver modules ，再設定 `max_vfs=40` 並 reload 它。  
 
 ```sh
 sudo rmmod ixgbe
-sudo modprobe ixgbe max_vfs=40,40
+sudo modprobe ixgbe max_vfs=40
 ```
 
 - **開機後還是可以 load ixgbe 的設定**
 ```sh
-echo "options ixgbe max_vfs=40,40" | sudo tee -a /etc/modprobe.d/ixgbe.conf
+echo "options ixgbe max_vfs=40" | sudo tee -a /etc/modprobe.d/ixgbe.conf
 ```
 
 
