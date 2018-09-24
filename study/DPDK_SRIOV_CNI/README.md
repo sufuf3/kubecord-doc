@@ -39,8 +39,8 @@
 ![](https://i.imgur.com/rrstxrP.png)  
 - enp8s0(NIC-1): 走 k8s 使用的 flannel CNI，當作是 k8s 的管理介面
 - enp9s0(NIC-2): 使用 Multus CNI + DPDK
-- ens11f0(NIC-3): 使用 Multus CNI + DPDK + SR-IOV
-- ens11f1(NIC-4): 使用 Multus CNI + SR-IOV
+- ens11f0(NIC-3): 使用 Multus CNI + DPDK + SR-IOV(PF)
+- ens11f1(NIC-4): 使用 Multus CNI + SR-IOV(VF)
 
 ## 測試的硬體與軟體規格
 ### 硬體
@@ -412,16 +412,16 @@ $ ls /lib/modules/`uname -r`/kernel/drivers/net/ethernet/intel
 
 - **為兩個 ixgbe ports 創立兩個 vfs**
 
-先 unload Linux ixgbe driver modules ，再設定 `max_vfs=40` 並 reload 它。  
+先 unload Linux ixgbe driver modules ，再設定 `max_vfs=0,40` 並 reload 它。  
 
 ```sh
 sudo rmmod ixgbe
-sudo modprobe ixgbe max_vfs=40
+sudo modprobe ixgbe max_vfs=0,40
 ```
 
 - **開機後還是可以 load ixgbe 的設定**
 ```sh
-echo "options ixgbe max_vfs=40" | sudo tee -a /etc/modprobe.d/ixgbe.conf
+echo "options ixgbe max_vfs=0,40" | sudo tee -a /etc/modprobe.d/ixgbe.conf
 ```
 
 
@@ -432,6 +432,7 @@ $ lspci | grep -i 'Virtual Function'
 01:10.1 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
 01:10.2 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
 01:10.3 Ethernet controller: Intel Corporation 82599 Ethernet Controller Virtual Function (rev 01)
+
 $ ip link show
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -439,22 +440,27 @@ $ ip link show
     link/ether cc:37:ab:e1:21:64 brd ff:ff:ff:ff:ff:ff
 3: enp9s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
     link/ether cc:37:ab:e1:21:65 brd ff:ff:ff:ff:ff:ff
-6: ens11f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default
+    link/ether 02:42:86:66:2b:1e brd ff:ff:ff:ff:ff:ff
+112: ens11f0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
     link/ether cc:37:ab:dd:f2:69 brd ff:ff:ff:ff:ff:ff
-    vf 0 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
-    vf 1 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
-7: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 62:33:90:12:89:bb brd ff:ff:ff:ff:ff:ff
-8: eth2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 4a:7c:fa:22:49:0f brd ff:ff:ff:ff:ff:ff
-9: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+113: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 6a:c0:41:d9:7a:9f brd ff:ff:ff:ff:ff:ff
+114: eth1: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 22:74:05:20:11:e4 brd ff:ff:ff:ff:ff:ff
+153: ens11f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
     link/ether cc:37:ab:dd:f2:6a brd ff:ff:ff:ff:ff:ff
     vf 0 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
     vf 1 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
-10: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 0a:a3:f8:65:06:0b brd ff:ff:ff:ff:ff:ff
-11: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 16:f1:61:38:ee:c0 brd ff:ff:ff:ff:ff:ff
+    vf 2 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 3 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 4 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 5 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 6 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 7 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 8 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 9 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
+    vf 10 MAC 00:00:00:00:00:00, spoof checking on, link-state auto
 ```
 
 ### 4. 綁定 Network Ports 到 Kernel Modules
