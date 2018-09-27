@@ -2,6 +2,7 @@
 
 ## Install k8s + flannel
 1. Use kubespray to install k8s custer without CNI.
+Ref: https://github.com/sufuf3/kubespray  
 
 2. Install CNI
 
@@ -14,6 +15,7 @@ wget -qO- --show-progress "${CNI_URL}/v0.6.0/cni-plugins-amd64-v0.6.0.tgz" | sud
 3. Install Flannel
 
 ```sh
+sudo mkdir /run/flannel/
 cat <<EOF | sudo tee -a /run/flannel/subnet.env
 FLANNEL_NETWORK=10.244.0.0/16
 FLANNEL_SUBNET=10.244.0.1/24
@@ -102,6 +104,7 @@ $ kubectl exec -it samplepod -- ip a
 
 1. Install sriov
 
+Need to install golang env.  
 ```sh
 git clone https://github.com/intel/sriov-cni.git
 cd sriov-cni && ./build

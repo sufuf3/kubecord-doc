@@ -5,6 +5,8 @@
 ### Install calico CNI
 Ref: https://docs.projectcalico.org/v3.2/getting-started/kubernetes/  
 
+https://raw.githubusercontent.com/projectcalico/calico/master/v2.0/getting-started/kubernetes/installation/hosted/k8s-backend-addon-manager/calico-daemonset.yaml
+
 1. Install an etcd instance with the following command.
 ```
 kubectl apply -f \
