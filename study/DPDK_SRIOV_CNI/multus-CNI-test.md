@@ -105,6 +105,7 @@ $ kubectl exec -it samplepod -- ip a
 1. Install sriov
 
 Need to install golang env.  
+
 ```sh
 git clone https://github.com/intel/sriov-cni.git
 cd sriov-cni && ./build
@@ -134,6 +135,7 @@ spec:
     }
   }'
 ```
+
 ```sh
 kubectl create -f sriov-conf.yaml
 ```
@@ -149,7 +151,7 @@ sriov-conf           2d
 
 4. apply pod-multi-network.yaml
 
-``yaml
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -166,6 +168,7 @@ spec:  # specification of the pod's contents
     stdin: true
     tty: true
 ```
+
 ```sh
 kubectl create -f ./pod-multi-network.yaml
 ```
@@ -177,6 +180,7 @@ kubectl get pods
 NAME                   READY     STATUS    RESTARTS   AGE
 multus-multi-net-poc   1/1       Running   0          30s
 ```
+
 ```sh
 $ kubectl exec -it multus-multi-net-poc -- ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue qlen 1000
