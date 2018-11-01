@@ -5,6 +5,8 @@
 - [什麼是 kubecord](#什麼是-kubecord)
 - [安裝說明](#安裝說明)
 - [安裝流程](#安裝流程)
+    - [Mutiple Interface Method 1](#mutiple-interface-method-1)
+    - [Mutiple Interface Method 2](#mutiple-interface-method-2)
 - [硬體與 OS 環境](#硬體與-os-環境)
 
 ## 什麼是 kubecord
@@ -12,6 +14,8 @@
 - 是一個 k8s 叢集，可支援多個 network interfaces pod
 - 包含 data plant 的加速技術在其中，包含 DPDK, SR-IOV
 - 包含 SDN 技術，包含 OVS 與 ONOS
+
+![](https://i.imgur.com/rrstxrP.png)  
 
 ## 安裝說明
 安裝 kubecord 在兩台實體主機。兩台實體主機的規格和 OS 都一模一樣。
@@ -23,6 +27,23 @@
 - [grub 設定檔配置](grub.md)
 - [安裝 DPDK](dpdk.md)
 - [設定 SR-IOV 的 VF 數量](set-sr-iov.md)
+- [安裝支援 DPDK 的 OVS 在 host](ovs-install.md)
+- [Setup Open vSwitch](setup-ovs.md)
+- [DPDK usage](dpdk-usage.md)
+- [安裝 Docker + Kubernetes + helm 等](kubespray.md)
+
+### Mutiple Interface Method 1
+
+- [建立 OVS 的 bridge]()
+- [Multus CNI](mutus-cni.md)
+- [SR-IOV CNI](sriov-cni.md): multus + SR-IOV
+- [Userspace CNI](userspace-cni.md): multus + OVS-DPDK
+
+### Mutiple Interface Method 2
+
+- [用 kubernetes 建立 vortex](vortex.md)
+- []
+
 
 ## 硬體與 OS 環境
 
