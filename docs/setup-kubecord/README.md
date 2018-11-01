@@ -22,6 +22,7 @@
 - [網路相關環境資訊蒐集](env.md)
 - [grub 設定檔配置](grub.md)
 - [安裝 DPDK](dpdk.md)
+- [設定 SR-IOV 的 VF 數量](set-sr-iov.md)
 
 ## 硬體與 OS 環境
 
